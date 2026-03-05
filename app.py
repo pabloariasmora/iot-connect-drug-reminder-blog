@@ -5,7 +5,7 @@
 
 
 import os
-from aws_cdk import core
+from aws_cdk import App
 
 from lex_sf_drug_reminder_blog.lex_sf_drug_reminder_stack import LexSFDCDrugReminderStack
 
@@ -21,7 +21,7 @@ params = {
     "sfdc_endpoint": os.getenv("ENDPOINT")
 }
 
-app = core.App()
+app = App()
 
 LexSFDCDrugReminderStack(app, "lex-sfdc-drug-reminder-blog", params=params)
 

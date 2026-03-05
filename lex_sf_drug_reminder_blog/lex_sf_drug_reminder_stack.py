@@ -173,10 +173,7 @@ class LexSFDCDrugReminderStack(core.Stack):
                                                                                                "lex:GetIntent",
                                                                                                "lex:PutIntent",
                                                                                                "lex:GetSlotType",
-                                                                                               'lex:DeleteBot',
-                                                                                               "lex:DeleteIntent",
-                                                                                               "lex:DeleteSlotType",
-                                                                                               "lex:StartImport",
+                                                                                                                                                                                                                                                                                                                                                                                            "lex:StartImport",
                                                                                                "lex:GetImport",  
                                                                                                "lex:CreateBot",
                                                                                                "lex:CreateIntent",
@@ -184,17 +181,13 @@ class LexSFDCDrugReminderStack(core.Stack):
                                                                                                "lex:DescribeBotLocale",
                                                                                                "lex:UpdateBotAlias",
                                                                                                "lex:CreateSlotType",
-                                                                                               "lex:DeleteBotLocale",
-                                                                                               "lex:DescribeBot",
+                                                                                                                                                                                              "lex:DescribeBot",
                                                                                                "lex:UpdateBotLocale",
                                                                                                "lex:CreateSlot",
-                                                                                               "lex:DeleteSlot",
-                                                                                               "lex:UpdateBot",
-                                                                                               "lex:DeleteSlotType",
-                                                                                               "lex:DescribeBotAlias",
+                                                                                                                                                                                              "lex:UpdateBot",
+                                                                                                                                                                                              "lex:DescribeBotAlias",
                                                                                                "lex:CreateBotLocale",
-                                                                                               "lex:DeleteIntent",
-                                                                                               "lex:StartImport",
+                                                                                                                                                                                              "lex:StartImport",
                                                                                                "lex:UpdateSlotType",
                                                                                                "lex:UpdateIntent",
                                                                                                "lex:DescribeImport"
@@ -255,8 +248,7 @@ class LexSFDCDrugReminderStack(core.Stack):
                                                                                    "connectInstanceID"))
                                                                                })
 
-        connect_operator_lambda_connect_import_connect = aws_iam.PolicyStatement(actions=["connect:CreateInstance",
-                                                                                  "connect:DescribeInstance",
+        connect_operator_lambda_connect_import_connect = aws_iam.PolicyStatement(actions=[                                                                                  "connect:DescribeInstance",
                                                                                   "connect:ListInstances",
                                                                                   "connect:AssociateInstanceStorageConfig",
                                                                                   "connect:UpdateInstanceAttribute",
@@ -273,13 +265,12 @@ class LexSFDCDrugReminderStack(core.Stack):
                                                                                   "connect:AssociateLambdaFunction",
                                                                                   "connect:DisassociateLambdaFunction"],
                                                                          effect=aws_iam.Effect.ALLOW,
-                                                                         resources=["arn:aws:connect:{}:{}:instance/*".format(
-                                                                                              self.region, self.account)])
+                                                                         resources=[f"arn:aws:connect:{self.region}:{self.account}:instance/{params.get('connectInstanceID')}",
+                                                                                   f"arn:aws:connect:{self.region}:{self.account}:instance/{params.get('connectInstanceID')}/*"])
         connect_operator_lambda_connect_import_lex = aws_iam.PolicyStatement(actions=["lex:GetBots",
                                                                                           "lex:GetBot",
                                                                                           "lex:CreateResourcePolicy",
-                                                                                          "lex:DeleteResourcePolicy",
-                                                                                          "lex:UpdateResourcePolicy",
+                                                                                                                                                                                    "lex:UpdateResourcePolicy",
                                                                                           "lex:DescribeBotAlias",
                                                                                           "lex:ListBotAliases",
                                                                                           "lex:ListBots"],
@@ -342,6 +333,24 @@ class LexSFDCDrugReminderStack(core.Stack):
         customer_calling_lambda.add_to_role_policy(connect_operator_lambda_connect_import_connect)
         customer_calling_lambda.add_to_role_policy(connect_operator_lambda_connect_import_lex)
         patient_table.grant_read_write_data(customer_calling_lambda)
+
+        # SECURITY FIX: Add CloudWatch Alarms for security monitoring
+        lambda_error_alarm = cloudwatch.Alarm(
+            self, "LambdaErrorAlarm",
+            metric=lex_fulfilment_lambda.metric_errors(statistic="Sum", period=Duration.minutes(5)),
+            threshold=5,
+            evaluation_periods=1,
+            alarm_description="Alert on multiple Lambda function errors"
+        )
+        
+        dynamodb_throttle_alarm = cloudwatch.Alarm(
+            self, "DynamoDBThrottleAlarm",
+            metric=patient_table.metric_user_errors(statistic="Sum", period=Duration.minutes(5)),
+            threshold=10,
+            evaluation_periods=1,
+            alarm_description="Alert on DynamoDB throttling events"
+        )
+        
         # Call the IoT Stack
         IoTStack(self, "iot-resources", project_prefix_obj=params.get("project_prefix"),
                  time_zone_obj=params.get("time_zone"),

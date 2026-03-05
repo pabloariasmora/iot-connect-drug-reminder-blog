@@ -75,17 +75,40 @@ def time_in_range(start, end, x):
 def lambda_handler(event, context):
     logging.info("event for debug")
     logging.info(event)
-    timestamp_device = event['time']
-    box_status_int = int(event['box_close'])
-    customer_phone_number = str(event['Customer_Phone_Number'])
+    
+    # SECURITY FIX: Enhanced input validation
+    # Validate timestamp
+    try:
+        timestamp_device = event['time']
+        dt.datetime.fromisoformat(timestamp_device.replace('Z', '+00:00'))
+    except (KeyError, ValueError) as e:
+        logger.error(f"Invalid or missing timestamp: {str(e)}")
+        raise ValueError("Invalid timestamp format. Expected ISO 8601 format")
+    
+    # Validate box_close
+    try:
+        box_status_int = int(event['box_close'])
+        if box_status_int not in [0, 1]:
+            raise ValueError("box_close must be 0 or 1")
+    except (KeyError, ValueError) as e:
+        logger.error(f"Invalid box_close value: {str(e)}")
+        raise ValueError("Invalid box_close value. Must be 0 or 1")
+    
+    # Validate phone number with improved regex
+    try:
+        customer_phone_number = str(event['Customer_Phone_Number'])
+    except KeyError:
+        logger.error("Missing Customer_Phone_Number")
+        raise ValueError("Customer_Phone_Number is required")
 
-    #phone regex check
-    regex_pattern = '^\++\d{1,15}'
-    match = re.search(regex_pattern, customer_phone_number)
+    # SECURITY FIX: Improved phone regex - single + followed by 1-15 digits
+    regex_pattern = r'^\+\d{1,15}$'
+    match = re.match(regex_pattern, customer_phone_number)
     if match:
-        logger.info("Number valid proceed further")
+        logger.info("Phone number valid, proceeding")
     else:
-       raise ValueError('Number provided by Medicine box: {} does not follow format, example: +1234567892')
+        logger.error(f"Invalid phone number format: {customer_phone_number}")
+        raise ValueError('Phone number must be in E.164 format: +[country code][number] (e.g., +12345678901)')
 
     # Set wait time for minus 5 mins
     wait_time = 300

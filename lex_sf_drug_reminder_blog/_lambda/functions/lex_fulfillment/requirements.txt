@@ -1,2 +1,2 @@
-requests
-simple-salesforce
+requests==2.32.5
+simple-salesforce==1.12.9

@@ -4,29 +4,30 @@
 import os
 
 from aws_cdk import (
-    core,
+    Duration,
     aws_lambda as _lambda,
     aws_logs as logs,
     aws_iam as iam,
     aws_iot as iot
 )
+from constructs import Construct
 
 
-class IoTStack(core.Construct):
-    def __init__(self, scope: core.Construct, id: str, project_prefix_obj, time_zone_obj, dynamoTable_obj, **kwargs):
+class IoTStack(Construct):
+    def __init__(self, scope: Construct, id: str, project_prefix_obj, time_zone_obj, dynamoTable_obj, **kwargs):
         super().__init__(scope, id, **kwargs)
 
         prefix_project_string = str(project_prefix_obj) + "-"
         time_zone_string = time_zone_obj
 
         update_dynamo_table_lambda = _lambda.Function(self, "IoTUpdatePatientTable",
-                                                      runtime=_lambda.Runtime.PYTHON_3_8,
+                                                      runtime=_lambda.Runtime.PYTHON_3_13,
                                                       handler="lambda_function.lambda_handler",
                                                       function_name=prefix_project_string + 'iot-update-patient-table',
                                                       environment={"TableName": dynamoTable_obj.table_name,
                                                       "time_zone": time_zone_string},
-                                                      timeout=core.Duration.minutes(2),
-                                                      code=_lambda.Code.asset('iot_resources/_lambda')
+                                                      timeout=Duration.minutes(2),
+                                                      code=_lambda.Code.from_asset('iot_resources/_lambda')
                                                       )
 
         # grant permission to dynamodb

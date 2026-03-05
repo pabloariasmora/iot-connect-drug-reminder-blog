@@ -6,8 +6,6 @@ import setuptools
 with open("README.md") as fp:
     long_description = fp.read()
 
-CDK_VERSION = '1.122.0'
-
 setuptools.setup(
     name="lex_sf_drug_reminder_blog",
     version="0.0.1",
@@ -21,23 +19,12 @@ setuptools.setup(
     package_dir={"": "lex_sf_drug_reminder_blog"},
     packages=setuptools.find_packages(where="lex_sf_drug_reminder_blog"),
 
-    install_requires=["aws-cdk.core=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_lambda=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_secretsmanager=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_iam=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_dynamodb=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_events=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_events_targets=={}".format(CDK_VERSION),
-                      "aws-cdk.custom_resources=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_lambda_python=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_lambda_event_sources=={}".format(CDK_VERSION),
-                      # add packages iot
-                      "aws-cdk.aws_logs=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_iam=={}".format(CDK_VERSION),
-                      "aws-cdk.aws_iot=={}".format(CDK_VERSION),
-                      ],
+    install_requires=[
+        "aws-cdk-lib==2.241.0",
+        "constructs>=10.0.0,<11.0.0",
+    ],
 
-    python_requires=">=3.6",
+    python_requires=">=3.9",
 
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -48,9 +35,11 @@ setuptools.setup(
 
         "Programming Language :: JavaScript",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
 
         "Topic :: Software Development :: Code Generators",
         "Topic :: Utilities",
